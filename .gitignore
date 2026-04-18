@@ -1,0 +1,67 @@
+# Build directories
+build/
+cmake-build-*/
+debug/
+release/
+out/
+
+# CMake cache
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+
+# Qt generated files
+*.qmlc
+*.jsc
+moc_*.cpp
+moc_*.h
+qrc_*.cpp
+ui_*.h
+*_autogen/
+*_automoc/
+*_qmlcache.qrc
+
+# Visual Studio
+.vs/
+*.vcxproj
+*.vcxproj.*
+*.sln
+*.suo
+*.user
+*.sdf
+*.opensdf
+*.pdb
+ipch/
+
+# Executables
+*.exe
+*.dll
+*.lib
+*.a
+*.so
+*.dylib
+
+# IDE specific
+.vscode/
+.idea/
+*.pro.user
+*.pro.user.*
+.qmake.stash
+
+# OS generated
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Temporary files
+*.log
+*.bak
+*.swp
+*~
+*.tmp
+
+# sccache local cache
+.sccache/
