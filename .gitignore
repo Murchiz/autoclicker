@@ -47,6 +47,7 @@ ipch/
 # IDE specific
 .vscode/
 .idea/
+.clangd
 *.pro.user
 *.pro.user.*
 .qmake.stash
