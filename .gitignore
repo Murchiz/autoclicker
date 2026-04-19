@@ -48,6 +48,7 @@ ipch/
 .vscode/
 .idea/
 .clangd
+.qmlls.ini
 *.pro.user
 *.pro.user.*
 .qmake.stash
