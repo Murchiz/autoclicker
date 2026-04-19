@@ -1,6 +1,6 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-#include <QQmlContext>
+
 #include <QIcon>
 #include "autoclickercontroller.h"
 #include "clicker.h"
@@ -25,11 +25,9 @@ int main(int argc, char *argv[])
     // Register types for QML
     qmlRegisterUncreatableType<ClickProfile>("AutoClicker", 1, 0, "ClickProfile",
         "Cannot create ClickProfile in QML");
-    qmlRegisterType<AutoClickerController>("AutoClicker", 1, 0, "AutoClickerController");
-
-    // Set context properties
-    engine.rootContext()->setContextProperty("autoClickerController", &controller);
-    engine.rootContext()->setContextProperty("translationManager", &translationManager);
+    // Register singletons for QML (qualified access, no unqualified warnings)
+    qmlRegisterSingletonInstance<AutoClickerController>("AutoClicker", 1, 0, "AutoClickerController", &controller);
+    qmlRegisterSingletonInstance<TranslationManager>("AutoClicker", 1, 0, "TranslationManager", &translationManager);
 
     // Load QML
     const QUrl url(QStringLiteral("qrc:/qml/main.qml"));

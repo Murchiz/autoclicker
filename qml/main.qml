@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -11,7 +13,7 @@ Window {
     height: 600
     minimumWidth: 600
     minimumHeight: 400
-    title: translationManager.currentLanguage && translationManager.textFor("app_title")
+    title: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("app_title")
     color: "#1e1e1e"
 
     ColumnLayout {
@@ -32,19 +34,21 @@ Window {
                 spacing: 12
 
                 Text {
-                    text: translationManager.currentLanguage && translationManager.textFor("app_title")
+                    text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("app_title")
                     font.pixelSize: 24
                     font.bold: true
                     color: "#ffffff"
                 }
 
-                Item { Layout.fillWidth: true }
+                Item {
+                    Layout.fillWidth: true
+                }
 
                 RowLayout {
                     spacing: 8
 
                     Text {
-                        text: translationManager.currentLanguage && translationManager.textFor("language")
+                        text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("language")
                         font.pixelSize: 13
                         color: "#888888"
                         Layout.alignment: Qt.AlignVCenter
@@ -54,38 +58,42 @@ Window {
                         id: languageSelector
                         Layout.preferredWidth: 110
                         Layout.preferredHeight: 32
-                        model: translationManager.availableLanguages
+                        model: AutoClicker.TranslationManager.availableLanguages
                         textRole: "name"
                         valueRole: "code"
 
                         Component.onCompleted: {
-                            const index = indexOfValue(translationManager.currentLanguage)
+                            const index = languageSelector.indexOfValue(AutoClicker.TranslationManager.currentLanguage);
                             if (index >= 0) {
-                                currentIndex = index
+                                languageSelector.currentIndex = index;
                             }
                         }
 
                         onActivated: {
-                            if (currentValue !== translationManager.currentLanguage) {
-                                translationManager.setLanguage(currentValue)
+                            if (languageSelector.currentValue !== AutoClicker.TranslationManager.currentLanguage) {
+                                AutoClicker.TranslationManager.setLanguage(languageSelector.currentValue);
                             }
                         }
 
                         delegate: ItemDelegate {
+                            id: languageDelegate
+                            required property int index
+                            required property var modelData
                             width: languageSelector.width
-                            highlighted: languageSelector.highlightedIndex === index
+                            highlighted: languageSelector.highlightedIndex === languageDelegate.index
                             contentItem: Text {
-                                text: modelData.name
-                                color: highlighted ? "#ffffff" : "#dddddd"
+                                text: languageDelegate.modelData.name
+                                color: languageDelegate.highlighted ? "#ffffff" : "#dddddd"
                                 font.pixelSize: 13
                                 verticalAlignment: Text.AlignVCenter
                             }
                             background: Rectangle {
-                                color: highlighted ? "#3d5a80" : "#2f2f2f"
+                                color: languageDelegate.highlighted ? "#3d5a80" : "#2f2f2f"
                             }
                         }
 
                         indicator: Canvas {
+                            id: comboIndicator
                             x: languageSelector.width - width - 10
                             y: (languageSelector.height - height) / 2
                             width: 12
@@ -94,17 +102,19 @@ Window {
 
                             Connections {
                                 target: languageSelector
-                                function onPressedChanged() { parent.requestPaint() }
+                                function onPressedChanged() {
+                                    comboIndicator.requestPaint();
+                                }
                             }
 
                             onPaint: {
-                                context.reset()
-                                context.moveTo(0, 0)
-                                context.lineTo(width, 0)
-                                context.lineTo(width / 2, height)
-                                context.closePath()
-                                context.fillStyle = "#d8d8d8"
-                                context.fill()
+                                context.reset();
+                                context.moveTo(0, 0);
+                                context.lineTo(width, 0);
+                                context.lineTo(width / 2, height);
+                                context.closePath();
+                                context.fillStyle = "#d8d8d8";
+                                context.fill();
                             }
                         }
 
@@ -146,11 +156,11 @@ Window {
                         }
 
                         Connections {
-                            target: translationManager
+                            target: AutoClicker.TranslationManager
                             function onCurrentLanguageChanged() {
-                                const index = languageSelector.indexOfValue(translationManager.currentLanguage)
+                                const index = languageSelector.indexOfValue(AutoClicker.TranslationManager.currentLanguage);
                                 if (index >= 0 && languageSelector.currentIndex !== index) {
-                                    languageSelector.currentIndex = index
+                                    languageSelector.currentIndex = index;
                                 }
                             }
                         }
@@ -158,7 +168,7 @@ Window {
                 }
 
                 Text {
-                    text: translationManager.currentLanguage && translationManager.textFor("profiles_count").arg(autoClickerController.profileCount)
+                    text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("profiles_count").arg(AutoClicker.AutoClickerController.profileCount)
                     font.pixelSize: 14
                     color: "#888888"
                     Layout.alignment: Qt.AlignVCenter
@@ -170,15 +180,13 @@ Window {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 40
-            visible: autoClickerController.isListeningForTarget || autoClickerController.isListeningForKeybind
+            visible: AutoClicker.AutoClickerController.isListeningForTarget || AutoClicker.AutoClickerController.isListeningForKeybind
             color: "#3d5a80"
             radius: 6
 
             Text {
                 anchors.centerIn: parent
-                text: autoClickerController.isListeningForTarget
-                      ? (translationManager.currentLanguage && translationManager.textFor("press_target"))
-                      : (translationManager.currentLanguage && translationManager.textFor("press_keybind"))
+                text: AutoClicker.AutoClickerController.isListeningForTarget ? (AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("press_target")) : (AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("press_keybind"))
                 font.pixelSize: 14
                 color: "#ffffff"
             }
@@ -190,27 +198,29 @@ Window {
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
-            model: autoClickerController
+            model: AutoClicker.AutoClickerController
             spacing: 10
 
             delegate: ClickProfileItem {
+                id: profileDelegate
+                required property var model
                 width: profileListView.width
-                profileId: model.profileId
-                targetButton: model.targetButton
-                targetButtonCode: model.targetButtonCode
-                keybind: model.keybind
-                keybindCode: model.keybindCode
-                frequency: model.frequency
-                randomFrequencyEnabled: model.randomFrequencyEnabled
-                maxFrequency: model.maxFrequency
-                mode: model.mode
-                isActive: model.isActive
+                profileId: profileDelegate.model.profileId
+                targetButton: profileDelegate.model.targetButton
+                targetButtonCode: profileDelegate.model.targetButtonCode
+                keybind: profileDelegate.model.keybind
+                keybindCode: profileDelegate.model.keybindCode
+                frequency: profileDelegate.model.frequency
+                randomFrequencyEnabled: profileDelegate.model.randomFrequencyEnabled
+                maxFrequency: profileDelegate.model.maxFrequency
+                mode: profileDelegate.model.mode
+                isActive: profileDelegate.model.isActive
             }
 
             // Empty state
             Text {
                 anchors.centerIn: parent
-                text: translationManager.currentLanguage && translationManager.textFor("empty_profiles")
+                text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("empty_profiles")
                 font.pixelSize: 16
                 color: "#666666"
                 horizontalAlignment: Text.AlignHCenter
@@ -229,9 +239,10 @@ Window {
                     radius: 3
                     color: verticalScrollBar.pressed ? "#888888" : (verticalScrollBar.hovered ? "#666666" : "#444444")
                     opacity: verticalScrollBar.active ? 1.0 : 0
-
                     Behavior on opacity {
-                        NumberAnimation { duration: 200 }
+                        NumberAnimation {
+                            duration: 200
+                        }
                     }
                 }
 
@@ -240,7 +251,6 @@ Window {
                     color: "transparent"
                 }
             }
-
         }
 
         // Add Profile Button
@@ -262,7 +272,7 @@ Window {
                 }
 
                 Text {
-                    text: translationManager.currentLanguage && translationManager.textFor("add_profile")
+                    text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("add_profile")
                     font.pixelSize: 16
                     color: "#ffffff"
                 }
@@ -274,7 +284,7 @@ Window {
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
-                    autoClickerController.addProfile()
+                    AutoClicker.AutoClickerController.addProfile();
                 }
             }
         }
@@ -287,7 +297,7 @@ Window {
 
             Text {
                 anchors.centerIn: parent
-                text: translationManager.currentLanguage && translationManager.textFor("footer_hint")
+                text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("footer_hint")
                 font.pixelSize: 12
                 color: "#666666"
                 width: parent.width
@@ -301,7 +311,7 @@ Window {
     Rectangle {
         anchors.fill: parent
         color: "#80000000"
-        visible: autoClickerController.isListeningForTarget || autoClickerController.isListeningForKeybind
+        visible: AutoClicker.AutoClickerController.isListeningForTarget || AutoClicker.AutoClickerController.isListeningForKeybind
         z: 100
 
         MouseArea {
@@ -325,28 +335,29 @@ Window {
 
                 BusyIndicator {
                     Layout.alignment: Qt.AlignHCenter
-                    running: autoClickerController.isListeningForTarget || autoClickerController.isListeningForKeybind
+                    running: AutoClicker.AutoClickerController.isListeningForTarget || AutoClicker.AutoClickerController.isListeningForKeybind
                 }
 
                 Text {
-                    text: translationManager.currentLanguage && translationManager.textFor("waiting_input")
+                    text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("waiting_input")
                     font.pixelSize: 16
                     color: "#ffffff"
                     Layout.alignment: Qt.AlignHCenter
                 }
 
                 Button {
-                    text: translationManager.currentLanguage && translationManager.textFor("cancel")
+                    id: cancelButton
+                    text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("cancel")
                     Layout.alignment: Qt.AlignHCenter
                     onClicked: {
-                        autoClickerController.stopListening()
+                        AutoClicker.AutoClickerController.stopListening();
                     }
                     background: Rectangle {
-                        color: parent.down ? "#cc4444" : (parent.hovered ? "#aa3333" : "#883333")
+                        color: cancelButton.down ? "#cc4444" : (cancelButton.hovered ? "#aa3333" : "#883333")
                         radius: 4
                     }
                     contentItem: Text {
-                        text: parent.text
+                        text: cancelButton.text
                         font.pixelSize: 14
                         color: "#ffffff"
                         horizontalAlignment: Text.AlignHCenter

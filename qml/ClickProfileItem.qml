@@ -1,15 +1,18 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import AutoClicker
 
 Rectangle {
     id: root
-    implicitHeight: randomFrequencyEnabled ? 160 : 130
+    implicitHeight: root.randomFrequencyEnabled ? 160 : 130
     height: implicitHeight
     color: "#2d2d2d"
     radius: 10
-    border.color: isActive ? "#4CAF50" : "#444444"
-    border.width: isActive ? 3 : 1
+    border.color: root.isActive ? "#4CAF50" : "#444444"
+    border.width: root.isActive ? 3 : 1
 
     property int profileId
     property string targetButton
@@ -34,7 +37,7 @@ Rectangle {
         }
         const clamped = Math.max(0.01, Math.min(100.0, parsed));
         frequencyField.text = normalizedFrequencyText(clamped);
-        autoClickerController.setFrequency(profileId, clamped);
+        AutoClicker.AutoClickerController.setFrequency(root.profileId, clamped);
     }
 
     function commitMaxFrequency() {
@@ -45,7 +48,7 @@ Rectangle {
         }
         const clamped = Math.max(root.frequency, Math.min(100.0, parsed));
         maxFrequencyField.text = normalizedFrequencyText(clamped);
-        autoClickerController.setMaxFrequency(profileId, clamped);
+        AutoClicker.AutoClickerController.setMaxFrequency(root.profileId, clamped);
     }
 
     MouseArea {
@@ -77,7 +80,7 @@ Rectangle {
         Rectangle {
             Layout.fillHeight: true
             Layout.preferredWidth: 6
-            color: isActive ? "#4CAF50" : "#555555"
+            color: root.isActive ? "#4CAF50" : "#555555"
             radius: 3
         }
 
@@ -93,30 +96,30 @@ Rectangle {
                 spacing: 2
 
                 Text {
-                    text: translationManager.currentLanguage && translationManager.textFor("target_button")
+                    text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("target_button")
                     font.pixelSize: 11
                     color: "#888888"
                 }
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 36
-                    color: targetArea.containsMouse || (autoClickerController.isListeningForTarget && autoClickerController.listeningProfileId === profileId) ? "#3d5a80" : "#3a3a3a"
+                    color: targetArea.containsMouse || (AutoClicker.AutoClickerController.isListeningForTarget && AutoClicker.AutoClickerController.listeningProfileId === root.profileId) ? "#3d5a80" : "#3a3a3a"
                     radius: 6
-                    border.color: targetButton !== "" ? "#5a9fd4" : "#555555"
+                    border.color: root.targetButton !== "" ? "#5a9fd4" : "#555555"
                     border.width: 2
                     Text {
                         anchors.centerIn: parent
-                        text: targetButton !== "" ? targetButton : (translationManager.currentLanguage && translationManager.textFor("set_target"))
+                        text: root.targetButton !== "" ? root.targetButton : (AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("set_target"))
                         font.pixelSize: 13
-                        color: targetButton !== "" ? "#ffffff" : "#777777"
-                        font.bold: targetButton !== ""
+                        color: root.targetButton !== "" ? "#ffffff" : "#777777"
+                        font.bold: root.targetButton !== ""
                     }
                     MouseArea {
                         id: targetArea
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: autoClickerController.startListeningForTarget(profileId)
+                        onClicked: AutoClicker.AutoClickerController.startListeningForTarget(root.profileId)
                     }
                 }
 
@@ -125,30 +128,30 @@ Rectangle {
                 }
 
                 Text {
-                    text: translationManager.currentLanguage && translationManager.textFor("keybind")
+                    text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("keybind")
                     font.pixelSize: 11
                     color: "#888888"
                 }
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 36
-                    color: keybindArea.containsMouse || (autoClickerController.isListeningForKeybind && autoClickerController.listeningProfileId === profileId) ? "#3d5a80" : "#3a3a3a"
+                    color: keybindArea.containsMouse || (AutoClicker.AutoClickerController.isListeningForKeybind && AutoClicker.AutoClickerController.listeningProfileId === root.profileId) ? "#3d5a80" : "#3a3a3a"
                     radius: 6
-                    border.color: keybind !== "" ? "#5a9fd4" : "#555555"
+                    border.color: root.keybind !== "" ? "#5a9fd4" : "#555555"
                     border.width: 2
                     Text {
                         anchors.centerIn: parent
-                        text: keybind !== "" ? keybind : (translationManager.currentLanguage && translationManager.textFor("set_keybind"))
+                        text: root.keybind !== "" ? root.keybind : (AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("set_keybind"))
                         font.pixelSize: 13
-                        color: keybind !== "" ? "#ffffff" : "#777777"
-                        font.bold: keybind !== ""
+                        color: root.keybind !== "" ? "#ffffff" : "#777777"
+                        font.bold: root.keybind !== ""
                     }
                     MouseArea {
                         id: keybindArea
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: autoClickerController.startListeningForKeybind(profileId)
+                        onClicked: AutoClicker.AutoClickerController.startListeningForKeybind(root.profileId)
                     }
                 }
             }
@@ -160,7 +163,7 @@ Rectangle {
                 spacing: 2
 
                 Text {
-                    text: randomFrequencyEnabled ? (translationManager.currentLanguage && translationManager.textFor("min_frequency_sec")) : (translationManager.currentLanguage && translationManager.textFor("frequency_sec"))
+                    text: root.randomFrequencyEnabled ? (AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("min_frequency_sec")) : (AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("frequency_sec"))
                     font.pixelSize: 11
                     color: "#888888"
                 }
@@ -243,41 +246,51 @@ Rectangle {
                     }
                 }
 
-                RowLayout {
+                Item {
                     Layout.fillWidth: true
-                    spacing: 6
-                    Rectangle {
-                        width: 14
-                        height: 14
-                        radius: 3
-                        color: root.randomFrequencyEnabled ? "#4CAF50" : "#2f2f2f"
-                        border.color: root.randomFrequencyEnabled ? "#4CAF50" : "#666666"
+                    Layout.preferredHeight: randomRow.implicitHeight
+
+                    RowLayout {
+                        id: randomRow
+                        anchors.fill: parent
+                        spacing: 6
+
+                        Rectangle {
+                            Layout.preferredWidth: 14
+                            Layout.preferredHeight: 14
+                            radius: 3
+                            color: root.randomFrequencyEnabled ? "#4CAF50" : "#2f2f2f"
+                            border.color: root.randomFrequencyEnabled ? "#4CAF50" : "#666666"
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: root.randomFrequencyEnabled ? "v" : ""
+                                font.pixelSize: 9
+                                color: "#ffffff"
+                            }
+                        }
+
                         Text {
-                            anchors.centerIn: parent
-                            text: root.randomFrequencyEnabled ? "v" : ""
-                            font.pixelSize: 9
-                            color: "#ffffff"
+                            text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("random_frequency")
+                            font.pixelSize: 11
+                            color: "#bbbbbb"
+                            Layout.fillWidth: true
                         }
                     }
-                    Text {
-                        text: translationManager.currentLanguage && translationManager.textFor("random_frequency")
-                        font.pixelSize: 11
-                        color: "#bbbbbb"
-                        Layout.fillWidth: true
-                    }
+
                     MouseArea {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: autoClickerController.setRandomFrequencyEnabled(profileId, !root.randomFrequencyEnabled)
+                        onClicked: AutoClicker.AutoClickerController.setRandomFrequencyEnabled(root.profileId, !root.randomFrequencyEnabled)
                     }
                 }
 
                 ColumnLayout {
-                    visible: randomFrequencyEnabled
+                    visible: root.randomFrequencyEnabled
                     spacing: 2
                     Text {
-                        text: translationManager.currentLanguage && translationManager.textFor("max_frequency_sec")
+                        text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("max_frequency_sec")
                         font.pixelSize: 11
                         color: "#888888"
                     }
@@ -369,7 +382,7 @@ Rectangle {
                 spacing: 2
 
                 Text {
-                    text: translationManager.currentLanguage && translationManager.textFor("mode")
+                    text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("mode")
                     font.pixelSize: 11
                     color: "#888888"
                 }
@@ -380,39 +393,43 @@ Rectangle {
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        color: mode === 0 ? "#4CAF50" : (tglModeArea.containsMouse ? "#3a3a3a" : "#2a2a2a")
+                        color: root.mode === 0 ? "#4CAF50" : (tglModeArea.containsMouse ? "#3a3a3a" : "#2a2a2a")
                         radius: 6
+
                         Text {
                             anchors.centerIn: parent
-                            text: translationManager.currentLanguage && translationManager.textFor("toggle")
+                            text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("toggle")
                             font.pixelSize: 11
-                            color: mode === 0 ? "#ffffff" : "#aaaaaa"
+                            color: root.mode === 0 ? "#ffffff" : "#aaaaaa"
                         }
+
                         MouseArea {
                             id: tglModeArea
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: autoClickerController.setMode(profileId, 0)
+                            onClicked: AutoClicker.AutoClickerController.setMode(root.profileId, 0)
                         }
                     }
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        color: mode === 1 ? "#4CAF50" : (hldModeArea.containsMouse ? "#3a3a3a" : "#2a2a2a")
+                        color: root.mode === 1 ? "#4CAF50" : (hldModeArea.containsMouse ? "#3a3a3a" : "#2a2a2a")
                         radius: 6
+
                         Text {
                             anchors.centerIn: parent
-                            text: translationManager.currentLanguage && translationManager.textFor("hold")
+                            text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("hold")
                             font.pixelSize: 11
-                            color: mode === 1 ? "#ffffff" : "#aaaaaa"
+                            color: root.mode === 1 ? "#ffffff" : "#aaaaaa"
                         }
+
                         MouseArea {
                             id: hldModeArea
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: autoClickerController.setMode(profileId, 1)
+                            onClicked: AutoClicker.AutoClickerController.setMode(root.profileId, 1)
                         }
                     }
                 }
@@ -432,13 +449,14 @@ Rectangle {
                         Layout.preferredWidth: 60
                         spacing: 1
                         Rectangle {
-                            width: 8
-                            height: 8
+                            Layout.preferredWidth: 8
+                            Layout.preferredHeight: 8
                             radius: 4
-                            color: isActive ? "#4CAF50" : "#888888"
+                            color: root.isActive ? "#4CAF50" : "#888888"
                             Layout.alignment: Qt.AlignHCenter
+
                             SequentialAnimation on color {
-                                running: isActive
+                                running: root.isActive
                                 loops: Animation.Infinite
                                 ColorAnimation {
                                     to: "#4CAF50"
@@ -451,13 +469,13 @@ Rectangle {
                             }
                         }
                         Text {
-                            text: isActive ? (translationManager.currentLanguage && translationManager.textFor("active")) : (translationManager.currentLanguage && translationManager.textFor("inactive"))
+                            text: root.isActive ? (AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("active")) : (AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("inactive"))
                             font.pixelSize: 9
                             font.bold: true
-                            color: isActive ? "#4CAF50" : "#888888"
+                            color: root.isActive ? "#4CAF50" : "#888888"
                             Layout.alignment: Qt.AlignHCenter
+                            Layout.fillWidth: true
                             elide: Text.ElideRight
-                            width: parent.width
                             horizontalAlignment: Text.AlignHCenter
                         }
                     }
@@ -467,12 +485,13 @@ Rectangle {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         Layout.minimumWidth: 80
-                        color: mode === 1 ? "#4a4a4a" : (isActive ? "#cc4444" : (tglBtnArea.containsMouse ? "#45a049" : "#4CAF50"))
+                        color: root.mode === 1 ? "#4a4a4a" : (root.isActive ? "#cc4444" : (tglBtnArea.containsMouse ? "#45a049" : "#4CAF50"))
                         radius: 8
-                        opacity: mode === 1 ? 0.7 : 1.0
+                        opacity: root.mode === 1 ? 0.7 : 1.0
+
                         Text {
                             anchors.centerIn: parent
-                            text: mode === 1 ? (translationManager.currentLanguage && translationManager.textFor("use_key")) : (isActive ? (translationManager.currentLanguage && translationManager.textFor("stop")) : (translationManager.currentLanguage && translationManager.textFor("start")))
+                            text: root.mode === 1 ? (AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("use_key")) : (root.isActive ? (AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("stop")) : (AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("start")))
                             font.pixelSize: 12
                             font.bold: true
                             color: "#ffffff"
@@ -484,15 +503,15 @@ Rectangle {
                             id: tglBtnArea
                             anchors.fill: parent
                             hoverEnabled: true
-                            enabled: mode === 0
-                            onClicked: autoClickerController.toggleProfile(profileId)
+                            enabled: root.mode === 0
+                            onClicked: AutoClicker.AutoClickerController.toggleProfile(root.profileId)
                         }
                     }
 
                     // Delete Button
                     Rectangle {
-                        width: 38
-                        height: 38
+                        Layout.preferredWidth: 38
+                        Layout.preferredHeight: 38
                         color: delBtnArea.containsMouse ? "#cc4444" : "#883333"
                         radius: 8
                         Text {
@@ -505,7 +524,7 @@ Rectangle {
                             id: delBtnArea
                             anchors.fill: parent
                             hoverEnabled: true
-                            onClicked: autoClickerController.removeProfile(profileId)
+                            onClicked: AutoClicker.AutoClickerController.removeProfile(root.profileId)
                         }
                     }
                 }
