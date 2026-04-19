@@ -3,27 +3,28 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import AutoClicker
+import AutoClicker as AC
 
 Rectangle {
     id: root
     implicitHeight: root.randomFrequencyEnabled ? 160 : 130
-    height: implicitHeight
+    height: root.implicitHeight
     color: "#2d2d2d"
     radius: 10
     border.color: root.isActive ? "#4CAF50" : "#444444"
     border.width: root.isActive ? 3 : 1
 
-    property int profileId
-    property string targetButton
-    property int targetButtonCode
-    property string keybind
-    property int keybindCode
-    property double frequency
-    property bool randomFrequencyEnabled
-    property double maxFrequency
-    property int mode
-    property bool isActive
+    // Simply making these 'required' allows ListView to map them automatically!
+    required property int profileId
+    required property string targetButton
+    required property int targetButtonCode
+    required property string keybind
+    required property int keybindCode
+    required property double frequency
+    required property bool randomFrequencyEnabled
+    required property double maxFrequency
+    required property int mode
+    required property bool isActive
 
     function normalizedFrequencyText(value) {
         return Number(value).toFixed(2);
@@ -32,23 +33,23 @@ Rectangle {
     function commitFrequency() {
         const parsed = Number.parseFloat(frequencyField.text.replace(",", "."));
         if (Number.isNaN(parsed) || parsed <= 0) {
-            frequencyField.text = normalizedFrequencyText(root.frequency);
+            frequencyField.text = root.normalizedFrequencyText(root.frequency);
             return;
         }
         const clamped = Math.max(0.01, Math.min(100.0, parsed));
-        frequencyField.text = normalizedFrequencyText(clamped);
-        AutoClicker.AutoClickerController.setFrequency(root.profileId, clamped);
+        frequencyField.text = root.normalizedFrequencyText(clamped);
+        AC.AutoClickerController.setFrequency(root.profileId, clamped);
     }
 
     function commitMaxFrequency() {
         const parsed = Number.parseFloat(maxFrequencyField.text.replace(",", "."));
         if (Number.isNaN(parsed) || parsed <= 0) {
-            maxFrequencyField.text = normalizedFrequencyText(root.maxFrequency);
+            maxFrequencyField.text = root.normalizedFrequencyText(root.maxFrequency);
             return;
         }
         const clamped = Math.max(root.frequency, Math.min(100.0, parsed));
-        maxFrequencyField.text = normalizedFrequencyText(clamped);
-        AutoClicker.AutoClickerController.setMaxFrequency(root.profileId, clamped);
+        maxFrequencyField.text = root.normalizedFrequencyText(clamped);
+        AC.AutoClickerController.setMaxFrequency(root.profileId, clamped);
     }
 
     MouseArea {
@@ -96,20 +97,20 @@ Rectangle {
                 spacing: 2
 
                 Text {
-                    text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("target_button")
+                    text: AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("target_button")
                     font.pixelSize: 11
                     color: "#888888"
                 }
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 36
-                    color: targetArea.containsMouse || (AutoClicker.AutoClickerController.isListeningForTarget && AutoClicker.AutoClickerController.listeningProfileId === root.profileId) ? "#3d5a80" : "#3a3a3a"
+                    color: targetArea.containsMouse || (AC.AutoClickerController.isListeningForTarget && AC.AutoClickerController.listeningProfileId === root.profileId) ? "#3d5a80" : "#3a3a3a"
                     radius: 6
                     border.color: root.targetButton !== "" ? "#5a9fd4" : "#555555"
                     border.width: 2
                     Text {
                         anchors.centerIn: parent
-                        text: root.targetButton !== "" ? root.targetButton : (AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("set_target"))
+                        text: root.targetButton !== "" ? root.targetButton : (AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("set_target"))
                         font.pixelSize: 13
                         color: root.targetButton !== "" ? "#ffffff" : "#777777"
                         font.bold: root.targetButton !== ""
@@ -119,7 +120,7 @@ Rectangle {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: AutoClicker.AutoClickerController.startListeningForTarget(root.profileId)
+                        onClicked: AC.AutoClickerController.startListeningForTarget(root.profileId)
                     }
                 }
 
@@ -128,20 +129,20 @@ Rectangle {
                 }
 
                 Text {
-                    text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("keybind")
+                    text: AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("keybind")
                     font.pixelSize: 11
                     color: "#888888"
                 }
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 36
-                    color: keybindArea.containsMouse || (AutoClicker.AutoClickerController.isListeningForKeybind && AutoClicker.AutoClickerController.listeningProfileId === root.profileId) ? "#3d5a80" : "#3a3a3a"
+                    color: keybindArea.containsMouse || (AC.AutoClickerController.isListeningForKeybind && AC.AutoClickerController.listeningProfileId === root.profileId) ? "#3d5a80" : "#3a3a3a"
                     radius: 6
                     border.color: root.keybind !== "" ? "#5a9fd4" : "#555555"
                     border.width: 2
                     Text {
                         anchors.centerIn: parent
-                        text: root.keybind !== "" ? root.keybind : (AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("set_keybind"))
+                        text: root.keybind !== "" ? root.keybind : (AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("set_keybind"))
                         font.pixelSize: 13
                         color: root.keybind !== "" ? "#ffffff" : "#777777"
                         font.bold: root.keybind !== ""
@@ -151,7 +152,7 @@ Rectangle {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: AutoClicker.AutoClickerController.startListeningForKeybind(root.profileId)
+                        onClicked: AC.AutoClickerController.startListeningForKeybind(root.profileId)
                     }
                 }
             }
@@ -163,7 +164,7 @@ Rectangle {
                 spacing: 2
 
                 Text {
-                    text: root.randomFrequencyEnabled ? (AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("min_frequency_sec")) : (AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("frequency_sec"))
+                    text: root.randomFrequencyEnabled ? (AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("min_frequency_sec")) : (AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("frequency_sec"))
                     font.pixelSize: 11
                     color: "#888888"
                 }
@@ -271,7 +272,7 @@ Rectangle {
                         }
 
                         Text {
-                            text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("random_frequency")
+                            text: AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("random_frequency")
                             font.pixelSize: 11
                             color: "#bbbbbb"
                             Layout.fillWidth: true
@@ -282,7 +283,7 @@ Rectangle {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: AutoClicker.AutoClickerController.setRandomFrequencyEnabled(root.profileId, !root.randomFrequencyEnabled)
+                        onClicked: AC.AutoClickerController.setRandomFrequencyEnabled(root.profileId, !root.randomFrequencyEnabled)
                     }
                 }
 
@@ -290,7 +291,7 @@ Rectangle {
                     visible: root.randomFrequencyEnabled
                     spacing: 2
                     Text {
-                        text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("max_frequency_sec")
+                        text: AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("max_frequency_sec")
                         font.pixelSize: 11
                         color: "#888888"
                     }
@@ -382,7 +383,7 @@ Rectangle {
                 spacing: 2
 
                 Text {
-                    text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("mode")
+                    text: AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("mode")
                     font.pixelSize: 11
                     color: "#888888"
                 }
@@ -398,7 +399,7 @@ Rectangle {
 
                         Text {
                             anchors.centerIn: parent
-                            text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("toggle")
+                            text: AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("toggle")
                             font.pixelSize: 11
                             color: root.mode === 0 ? "#ffffff" : "#aaaaaa"
                         }
@@ -408,7 +409,7 @@ Rectangle {
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: AutoClicker.AutoClickerController.setMode(root.profileId, 0)
+                            onClicked: AC.AutoClickerController.setMode(root.profileId, 0)
                         }
                     }
                     Rectangle {
@@ -419,7 +420,7 @@ Rectangle {
 
                         Text {
                             anchors.centerIn: parent
-                            text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("hold")
+                            text: AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("hold")
                             font.pixelSize: 11
                             color: root.mode === 1 ? "#ffffff" : "#aaaaaa"
                         }
@@ -429,7 +430,7 @@ Rectangle {
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: AutoClicker.AutoClickerController.setMode(root.profileId, 1)
+                            onClicked: AC.AutoClickerController.setMode(root.profileId, 1)
                         }
                     }
                 }
@@ -469,7 +470,7 @@ Rectangle {
                             }
                         }
                         Text {
-                            text: root.isActive ? (AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("active")) : (AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("inactive"))
+                            text: root.isActive ? (AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("active")) : (AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("inactive"))
                             font.pixelSize: 9
                             font.bold: true
                             color: root.isActive ? "#4CAF50" : "#888888"
@@ -482,6 +483,7 @@ Rectangle {
 
                     // Start/Stop Button
                     Rectangle {
+                        id: startStopBtnRect
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         Layout.minimumWidth: 80
@@ -491,12 +493,12 @@ Rectangle {
 
                         Text {
                             anchors.centerIn: parent
-                            text: root.mode === 1 ? (AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("use_key")) : (root.isActive ? (AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("stop")) : (AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("start")))
+                            text: root.mode === 1 ? (AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("use_key")) : (root.isActive ? (AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("stop")) : (AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("start")))
                             font.pixelSize: 12
                             font.bold: true
                             color: "#ffffff"
                             elide: Text.ElideRight
-                            width: parent.width - 10
+                            width: startStopBtnRect.width - 10
                             horizontalAlignment: Text.AlignHCenter
                         }
                         MouseArea {
@@ -504,7 +506,7 @@ Rectangle {
                             anchors.fill: parent
                             hoverEnabled: true
                             enabled: root.mode === 0
-                            onClicked: AutoClicker.AutoClickerController.toggleProfile(root.profileId)
+                            onClicked: AC.AutoClickerController.toggleProfile(root.profileId)
                         }
                     }
 
@@ -524,7 +526,7 @@ Rectangle {
                             id: delBtnArea
                             anchors.fill: parent
                             hoverEnabled: true
-                            onClicked: AutoClicker.AutoClickerController.removeProfile(root.profileId)
+                            onClicked: AC.AutoClickerController.removeProfile(root.profileId)
                         }
                     }
                 }

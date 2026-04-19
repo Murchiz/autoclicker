@@ -2,10 +2,13 @@
 
 #include <QObject>
 #include <QString>
+#include <QtQml/qqml.h>
 
 class ClickProfile : public QObject
 {
     Q_OBJECT
+    QML_ELEMENT
+    QML_UNCREATABLE("Cannot create ClickProfile in QML")
     Q_PROPERTY(int id READ id CONSTANT)
     Q_PROPERTY(QString targetButton READ targetButton WRITE setTargetButton NOTIFY targetButtonChanged)
     Q_PROPERTY(int targetButtonCode READ targetButtonCode WRITE setTargetButtonCode NOTIFY targetButtonChanged)

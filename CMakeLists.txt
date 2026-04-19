@@ -18,10 +18,9 @@ project(autoclicker VERSION 1.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Quick)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Quick Qml)
 
 set(SOURCES
     src/main.cpp
@@ -40,14 +39,24 @@ set(HEADERS
     src/translationmanager.h
 )
 
-set(RESOURCES
-    resources/qml.qrc
+qt_add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
+
+qt_policy(SET QTP0004 NEW)
+
+# Define the AutoClicker QML module (generates .qmltypes for tooling)
+qt_add_qml_module(${PROJECT_NAME}
+    URI AutoClicker
+    VERSION 1.0
+    RESOURCE_PREFIX "/"
+    QML_FILES
+        qml/ClickProfileItem.qml
 )
 
-add_executable(${PROJECT_NAME}
-    ${SOURCES}
-    ${HEADERS}
-    ${RESOURCES}
+# Add main.qml as a direct resource (entry point, not part of the module)
+qt_add_resources(${PROJECT_NAME} "main_qml"
+    PREFIX "/"
+    FILES
+        qml/main.qml
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
@@ -59,6 +68,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt6::Core
     Qt6::Gui
     Qt6::Quick
+    Qt6::Qml
     user32
 )
 

@@ -4,7 +4,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
-import AutoClicker
+import AutoClicker as AC
 
 Window {
     id: root
@@ -13,7 +13,7 @@ Window {
     height: 600
     minimumWidth: 600
     minimumHeight: 400
-    title: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("app_title")
+    title: AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("app_title")
     color: "#1e1e1e"
 
     ColumnLayout {
@@ -34,7 +34,7 @@ Window {
                 spacing: 12
 
                 Text {
-                    text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("app_title")
+                    text: AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("app_title")
                     font.pixelSize: 24
                     font.bold: true
                     color: "#ffffff"
@@ -48,7 +48,7 @@ Window {
                     spacing: 8
 
                     Text {
-                        text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("language")
+                        text: AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("language")
                         font.pixelSize: 13
                         color: "#888888"
                         Layout.alignment: Qt.AlignVCenter
@@ -58,20 +58,20 @@ Window {
                         id: languageSelector
                         Layout.preferredWidth: 110
                         Layout.preferredHeight: 32
-                        model: AutoClicker.TranslationManager.availableLanguages
+                        model: AC.TranslationManager.availableLanguages
                         textRole: "name"
                         valueRole: "code"
 
                         Component.onCompleted: {
-                            const index = languageSelector.indexOfValue(AutoClicker.TranslationManager.currentLanguage);
+                            const index = languageSelector.indexOfValue(AC.TranslationManager.currentLanguage);
                             if (index >= 0) {
                                 languageSelector.currentIndex = index;
                             }
                         }
 
                         onActivated: {
-                            if (languageSelector.currentValue !== AutoClicker.TranslationManager.currentLanguage) {
-                                AutoClicker.TranslationManager.setLanguage(languageSelector.currentValue);
+                            if (languageSelector.currentValue !== AC.TranslationManager.currentLanguage) {
+                                AC.TranslationManager.setLanguage(languageSelector.currentValue);
                             }
                         }
 
@@ -82,7 +82,7 @@ Window {
                             width: languageSelector.width
                             highlighted: languageSelector.highlightedIndex === languageDelegate.index
                             contentItem: Text {
-                                text: languageDelegate.modelData.name
+                                text: languageDelegate.modelData["name"] // Using bracket notation avoids qmllint 'var property' warnings
                                 color: languageDelegate.highlighted ? "#ffffff" : "#dddddd"
                                 font.pixelSize: 13
                                 verticalAlignment: Text.AlignVCenter
@@ -94,8 +94,8 @@ Window {
 
                         indicator: Canvas {
                             id: comboIndicator
-                            x: languageSelector.width - width - 10
-                            y: (languageSelector.height - height) / 2
+                            x: languageSelector.width - comboIndicator.width - 10
+                            y: (languageSelector.height - comboIndicator.height) / 2
                             width: 12
                             height: 8
                             contextType: "2d"
@@ -108,13 +108,14 @@ Window {
                             }
 
                             onPaint: {
-                                context.reset();
-                                context.moveTo(0, 0);
-                                context.lineTo(width, 0);
-                                context.lineTo(width / 2, height);
-                                context.closePath();
-                                context.fillStyle = "#d8d8d8";
-                                context.fill();
+                                var ctx = comboIndicator.getContext("2d");
+                                ctx.reset();
+                                ctx.moveTo(0, 0);
+                                ctx.lineTo(comboIndicator.width, 0);
+                                ctx.lineTo(comboIndicator.width / 2, comboIndicator.height);
+                                ctx.closePath();
+                                ctx.fillStyle = "#d8d8d8";
+                                ctx.fill();
                             }
                         }
 
@@ -141,8 +142,9 @@ Window {
                             padding: 1
 
                             contentItem: ListView {
+                                id: popupListView
                                 clip: true
-                                implicitHeight: contentHeight
+                                implicitHeight: popupListView.contentHeight
                                 model: languageSelector.popup.visible ? languageSelector.delegateModel : null
                                 currentIndex: languageSelector.highlightedIndex
                             }
@@ -156,9 +158,9 @@ Window {
                         }
 
                         Connections {
-                            target: AutoClicker.TranslationManager
+                            target: AC.TranslationManager
                             function onCurrentLanguageChanged() {
-                                const index = languageSelector.indexOfValue(AutoClicker.TranslationManager.currentLanguage);
+                                const index = languageSelector.indexOfValue(AC.TranslationManager.currentLanguage);
                                 if (index >= 0 && languageSelector.currentIndex !== index) {
                                     languageSelector.currentIndex = index;
                                 }
@@ -168,7 +170,7 @@ Window {
                 }
 
                 Text {
-                    text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("profiles_count").arg(AutoClicker.AutoClickerController.profileCount)
+                    text: AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("profiles_count").arg(AC.AutoClickerController.profileCount)
                     font.pixelSize: 14
                     color: "#888888"
                     Layout.alignment: Qt.AlignVCenter
@@ -180,13 +182,13 @@ Window {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 40
-            visible: AutoClicker.AutoClickerController.isListeningForTarget || AutoClicker.AutoClickerController.isListeningForKeybind
+            visible: AC.AutoClickerController.isListeningForTarget || AC.AutoClickerController.isListeningForKeybind
             color: "#3d5a80"
             radius: 6
 
             Text {
                 anchors.centerIn: parent
-                text: AutoClicker.AutoClickerController.isListeningForTarget ? (AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("press_target")) : (AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("press_keybind"))
+                text: AC.AutoClickerController.isListeningForTarget ? (AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("press_target")) : (AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("press_keybind"))
                 font.pixelSize: 14
                 color: "#ffffff"
             }
@@ -198,29 +200,18 @@ Window {
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
-            model: AutoClicker.AutoClickerController
+            model: AC.AutoClickerController
             spacing: 10
 
-            delegate: ClickProfileItem {
-                id: profileDelegate
-                required property var model
+            // The list view automatically injects the roles directly into the 'required' properties!
+            delegate: AC.ClickProfileItem {
                 width: profileListView.width
-                profileId: profileDelegate.model.profileId
-                targetButton: profileDelegate.model.targetButton
-                targetButtonCode: profileDelegate.model.targetButtonCode
-                keybind: profileDelegate.model.keybind
-                keybindCode: profileDelegate.model.keybindCode
-                frequency: profileDelegate.model.frequency
-                randomFrequencyEnabled: profileDelegate.model.randomFrequencyEnabled
-                maxFrequency: profileDelegate.model.maxFrequency
-                mode: profileDelegate.model.mode
-                isActive: profileDelegate.model.isActive
             }
 
             // Empty state
             Text {
                 anchors.centerIn: parent
-                text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("empty_profiles")
+                text: AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("empty_profiles")
                 font.pixelSize: 16
                 color: "#666666"
                 horizontalAlignment: Text.AlignHCenter
@@ -272,7 +263,7 @@ Window {
                 }
 
                 Text {
-                    text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("add_profile")
+                    text: AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("add_profile")
                     font.pixelSize: 16
                     color: "#ffffff"
                 }
@@ -284,23 +275,24 @@ Window {
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
-                    AutoClicker.AutoClickerController.addProfile();
+                    AC.AutoClickerController.addProfile();
                 }
             }
         }
 
         // Footer info
         Rectangle {
+            id: footerRect
             Layout.fillWidth: true
             Layout.preferredHeight: 35
             color: "transparent"
 
             Text {
                 anchors.centerIn: parent
-                text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("footer_hint")
+                text: AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("footer_hint")
                 font.pixelSize: 12
                 color: "#666666"
-                width: parent.width
+                width: footerRect.width
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
             }
@@ -311,7 +303,7 @@ Window {
     Rectangle {
         anchors.fill: parent
         color: "#80000000"
-        visible: AutoClicker.AutoClickerController.isListeningForTarget || AutoClicker.AutoClickerController.isListeningForKeybind
+        visible: AC.AutoClickerController.isListeningForTarget || AC.AutoClickerController.isListeningForKeybind
         z: 100
 
         MouseArea {
@@ -335,11 +327,11 @@ Window {
 
                 BusyIndicator {
                     Layout.alignment: Qt.AlignHCenter
-                    running: AutoClicker.AutoClickerController.isListeningForTarget || AutoClicker.AutoClickerController.isListeningForKeybind
+                    running: AC.AutoClickerController.isListeningForTarget || AC.AutoClickerController.isListeningForKeybind
                 }
 
                 Text {
-                    text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("waiting_input")
+                    text: AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("waiting_input")
                     font.pixelSize: 16
                     color: "#ffffff"
                     Layout.alignment: Qt.AlignHCenter
@@ -347,10 +339,10 @@ Window {
 
                 Button {
                     id: cancelButton
-                    text: AutoClicker.TranslationManager.currentLanguage && AutoClicker.TranslationManager.textFor("cancel")
+                    text: AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("cancel")
                     Layout.alignment: Qt.AlignHCenter
                     onClicked: {
-                        AutoClicker.AutoClickerController.stopListening();
+                        AC.AutoClickerController.stopListening();
                     }
                     background: Rectangle {
                         color: cancelButton.down ? "#cc4444" : (cancelButton.hovered ? "#aa3333" : "#883333")

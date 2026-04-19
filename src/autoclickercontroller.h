@@ -4,13 +4,15 @@
 #include <QTimer>
 #include <QAbstractListModel>
 #include <QRandomGenerator>
+#include <QtQml/qqml.h>
 #include "models/clickprofile.h"
 #include "clicker.h"
 #include "keybinder.h"
 
-class AutoClickerController : public QAbstractListModel
-{
+class AutoClickerController : public QAbstractListModel {
     Q_OBJECT
+    QML_ELEMENT
+    QML_SINGLETON
     Q_PROPERTY(int profileCount READ profileCount NOTIFY profileCountChanged)
     Q_PROPERTY(int listeningProfileId READ listeningProfileId NOTIFY listeningProfileIdChanged)
     Q_PROPERTY(bool isListeningForTarget READ isListeningForTarget NOTIFY isListeningChanged)
