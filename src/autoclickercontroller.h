@@ -4,7 +4,7 @@
 #include <QTimer>
 #include <QAbstractListModel>
 #include <QRandomGenerator>
-#include <QtQml/qqml.h>
+#include <QtQml/qqmlregistration.h>
 #include "models/clickprofile.h"
 #include "clicker.h"
 #include "keybinder.h"

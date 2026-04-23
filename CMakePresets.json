@@ -1,0 +1,61 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "cmake-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_PREFIX_PATH": "$env{Qt6_DIR}",
+        "USE_SCCACHE": true
+      }
+    },
+    {
+      "name": "cmake-debug",
+      "inherits": "cmake-base",
+      "binaryDir": "${sourceDir}/build/cmake-debug",
+      "installDir": "${sourceDir}/build/install/cmake-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "cmake-release",
+      "inherits": "cmake-base",
+      "binaryDir": "${sourceDir}/build/cmake-release",
+      "installDir": "${sourceDir}/build/install/cmake-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "cmake-debug",
+      "configurePreset": "cmake-debug"
+    },
+    {
+      "name": "cmake-release",
+      "configurePreset": "cmake-release"
+    },
+    {
+      "name": "cmake-debug-install",
+      "configurePreset": "cmake-debug",
+      "targets": [
+        "install"
+      ]
+    },
+    {
+      "name": "cmake-release-install",
+      "configurePreset": "cmake-release",
+      "targets": [
+        "install"
+      ]
+    }
+  ]
+}

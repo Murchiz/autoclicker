@@ -1,5 +1,7 @@
 # Build directories
 build/
+builddir/
+meson-build*/
 cmake-build-*/
 debug/
 release/
@@ -12,6 +14,17 @@ cmake_install.cmake
 Makefile
 *.cmake
 !CMakeLists.txt
+CMakeUserPresets.json
+
+# Meson / Ninja
+.mesonpy-native-file.ini
+.ninja_deps
+.ninja_log
+build.ninja
+compile_commands.json
+meson-info/
+meson-logs/
+meson-private/
 
 # Qt generated files
 *.qmlc

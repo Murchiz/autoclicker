@@ -204,7 +204,7 @@ Window {
             spacing: 10
 
             // The list view automatically injects the roles directly into the 'required' properties!
-            delegate: AC.ClickProfileItem {
+            delegate: ClickProfileItem {
                 width: profileListView.width
             }
 

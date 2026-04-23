@@ -2,7 +2,7 @@
 
 #include <QObject>
 #include <QString>
-#include <QtQml/qqml.h>
+#include <QtQml/qqmlregistration.h>
 
 class ClickProfile : public QObject
 {
