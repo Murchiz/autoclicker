@@ -7,7 +7,8 @@ import AutoClicker as AC
 
 Rectangle {
     id: root
-    implicitHeight: root.randomFrequencyEnabled ? 160 : 130
+    readonly property int contentMargin: 12
+    implicitHeight: contentLayout.implicitHeight + (root.contentMargin * 2)
     height: root.implicitHeight
     color: "#2d2d2d"
     radius: 10
@@ -25,6 +26,9 @@ Rectangle {
     required property double maxFrequency
     required property int mode
     required property bool isActive
+    readonly property int controlHeight: 36
+    readonly property int labelHeight: 16
+    readonly property int secondaryRowGap: root.randomFrequencyEnabled ? 18 : 16
 
     function normalizedFrequencyText(value) {
         return Number(value).toFixed(2);
@@ -73,8 +77,9 @@ Rectangle {
     }
 
     RowLayout {
+        id: contentLayout
         anchors.fill: parent
-        anchors.margins: 12
+        anchors.margins: root.contentMargin
         spacing: 12
 
         // Status Bar
@@ -97,13 +102,15 @@ Rectangle {
                 spacing: 2
 
                 Text {
+                    Layout.preferredHeight: root.labelHeight
                     text: AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("target_button")
                     font.pixelSize: 11
                     color: "#888888"
+                    verticalAlignment: Text.AlignVCenter
                 }
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 36
+                    Layout.preferredHeight: root.controlHeight
                     color: targetArea.containsMouse || (AC.AutoClickerController.isListeningForTarget && AC.AutoClickerController.listeningProfileId === root.profileId) ? "#3d5a80" : "#3a3a3a"
                     radius: 6
                     border.color: root.targetButton !== "" ? "#5a9fd4" : "#555555"
@@ -125,17 +132,19 @@ Rectangle {
                 }
 
                 Item {
-                    Layout.preferredHeight: 4
+                    Layout.preferredHeight: root.secondaryRowGap
                 }
 
                 Text {
+                    Layout.preferredHeight: root.labelHeight
                     text: AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("keybind")
                     font.pixelSize: 11
                     color: "#888888"
+                    verticalAlignment: Text.AlignVCenter
                 }
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 36
+                    Layout.preferredHeight: root.controlHeight
                     color: keybindArea.containsMouse || (AC.AutoClickerController.isListeningForKeybind && AC.AutoClickerController.listeningProfileId === root.profileId) ? "#3d5a80" : "#3a3a3a"
                     radius: 6
                     border.color: root.keybind !== "" ? "#5a9fd4" : "#555555"
@@ -164,13 +173,15 @@ Rectangle {
                 spacing: 2
 
                 Text {
+                    Layout.preferredHeight: root.labelHeight
                     text: root.randomFrequencyEnabled ? (AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("min_frequency_sec")) : (AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("frequency_sec"))
                     font.pixelSize: 11
                     color: "#888888"
+                    verticalAlignment: Text.AlignVCenter
                 }
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 36
+                    Layout.preferredHeight: root.controlHeight
                     color: "#3a3a3a"
                     radius: 6
                     border.color: frequencyField.activeFocus ? "#5a9fd4" : "#555555"
@@ -249,11 +260,13 @@ Rectangle {
 
                 Item {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: randomRow.implicitHeight
+                    Layout.preferredHeight: Math.max(root.secondaryRowGap, randomRow.implicitHeight)
 
                     RowLayout {
                         id: randomRow
-                        anchors.fill: parent
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.left: parent.left
+                        anchors.right: parent.right
                         spacing: 6
 
                         Rectangle {
@@ -289,15 +302,18 @@ Rectangle {
 
                 ColumnLayout {
                     visible: root.randomFrequencyEnabled
+                    Layout.fillWidth: true
                     spacing: 2
                     Text {
+                        Layout.preferredHeight: root.labelHeight
                         text: AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("max_frequency_sec")
                         font.pixelSize: 11
                         color: "#888888"
+                        verticalAlignment: Text.AlignVCenter
                     }
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 36
+                        Layout.preferredHeight: root.controlHeight
                         color: "#3a3a3a"
                         radius: 6
                         border.color: maxFrequencyField.activeFocus ? "#5a9fd4" : "#555555"
@@ -446,38 +462,45 @@ Rectangle {
                     spacing: 6
 
                     // Status Text
-                    ColumnLayout {
-                        Layout.preferredWidth: 60
-                        spacing: 1
-                        Rectangle {
-                            Layout.preferredWidth: 8
-                            Layout.preferredHeight: 8
-                            radius: 4
-                            color: root.isActive ? "#4CAF50" : "#888888"
-                            Layout.alignment: Qt.AlignHCenter
+                    Item {
+                        Layout.preferredWidth: 72
+                        Layout.fillHeight: true
 
-                            SequentialAnimation on color {
-                                running: root.isActive
-                                loops: Animation.Infinite
-                                ColorAnimation {
-                                    to: "#4CAF50"
-                                    duration: 500
-                                }
-                                ColorAnimation {
-                                    to: "#81C784"
-                                    duration: 500
+                        ColumnLayout {
+                            anchors.centerIn: parent
+                            width: parent.width
+                            spacing: 1
+
+                            Rectangle {
+                                Layout.preferredWidth: 8
+                                Layout.preferredHeight: 8
+                                radius: 4
+                                color: root.isActive ? "#4CAF50" : "#888888"
+                                Layout.alignment: Qt.AlignHCenter
+
+                                SequentialAnimation on color {
+                                    running: root.isActive
+                                    loops: Animation.Infinite
+                                    ColorAnimation {
+                                        to: "#4CAF50"
+                                        duration: 500
+                                    }
+                                    ColorAnimation {
+                                        to: "#81C784"
+                                        duration: 500
+                                    }
                                 }
                             }
-                        }
-                        Text {
-                            text: root.isActive ? (AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("active")) : (AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("inactive"))
-                            font.pixelSize: 9
-                            font.bold: true
-                            color: root.isActive ? "#4CAF50" : "#888888"
-                            Layout.alignment: Qt.AlignHCenter
-                            Layout.fillWidth: true
-                            elide: Text.ElideRight
-                            horizontalAlignment: Text.AlignHCenter
+                            Text {
+                                text: root.isActive ? (AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("active")) : (AC.TranslationManager.currentLanguage && AC.TranslationManager.textFor("inactive"))
+                                font.pixelSize: 9
+                                font.bold: true
+                                color: root.isActive ? "#4CAF50" : "#888888"
+                                Layout.alignment: Qt.AlignHCenter
+                                Layout.fillWidth: true
+                                elide: Text.ElideRight
+                                horizontalAlignment: Text.AlignHCenter
+                            }
                         }
                     }
 
@@ -511,22 +534,29 @@ Rectangle {
                     }
 
                     // Delete Button
-                    Rectangle {
-                        Layout.preferredWidth: 38
-                        Layout.preferredHeight: 38
-                        color: delBtnArea.containsMouse ? "#cc4444" : "#883333"
-                        radius: 8
-                        Text {
+                    Item {
+                        Layout.preferredWidth: 72
+                        Layout.fillHeight: true
+
+                        Rectangle {
+                            width: 38
+                            height: 38
                             anchors.centerIn: parent
-                            text: "✕"
-                            font.pixelSize: 16
-                            color: "#ffffff"
-                        }
-                        MouseArea {
-                            id: delBtnArea
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            onClicked: AC.AutoClickerController.removeProfile(root.profileId)
+                            color: delBtnArea.containsMouse ? "#cc4444" : "#883333"
+                            radius: 8
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: "✕"
+                                font.pixelSize: 16
+                                color: "#ffffff"
+                            }
+                            MouseArea {
+                                id: delBtnArea
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                onClicked: AC.AutoClickerController.removeProfile(root.profileId)
+                            }
                         }
                     }
                 }
