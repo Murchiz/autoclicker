@@ -23,6 +23,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include(GNUInstallDirs)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Quick Qml)
+find_program(POWERSHELL_EXECUTABLE NAMES pwsh powershell REQUIRED)
+
+get_filename_component(QT6_PREFIX "${Qt6_DIR}/../../.." ABSOLUTE)
+set(WINDEPLOYQT_EXECUTABLE "${QT6_PREFIX}/bin/windeployqt.exe")
 
 set(SOURCES
     src/main.cpp
@@ -43,22 +47,12 @@ set(HEADERS
 
 qt_add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 
-qt_policy(SET QTP0004 NEW)
-
-# Define the AutoClicker QML module (generates .qmltypes for tooling)
-qt_add_qml_module(${PROJECT_NAME}
-    URI AutoClicker
-    VERSION 1.0
-    RESOURCE_PREFIX "/"
-    QML_FILES
-        qml/ClickProfileItem.qml
-)
-
-# Add main.qml as a direct resource (entry point, not part of the module)
-qt_add_resources(${PROJECT_NAME} "main_qml"
+# Embed the QML files directly so CMake and Meson produce the same runtime layout.
+qt_add_resources(${PROJECT_NAME} "qml_resources"
     PREFIX "/"
     FILES
         qml/main.qml
+        qml/ClickProfileItem.qml
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
@@ -83,11 +77,19 @@ install(TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.19")
-    qt_generate_deploy_qml_app_script(
-        TARGET ${PROJECT_NAME}
-        OUTPUT_SCRIPT deploy_script
-        NO_UNSUPPORTED_PLATFORM_ERROR
+install(CODE "
+    execute_process(
+        COMMAND \"${POWERSHELL_EXECUTABLE}\"
+                -NoProfile
+                -ExecutionPolicy Bypass
+                -File \"${CMAKE_CURRENT_SOURCE_DIR}/scripts/cmake-install-windeployqt.ps1\"
+                \"${WINDEPLOYQT_EXECUTABLE}\"
+                \"\$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}.exe\"
+                \"${CMAKE_CURRENT_SOURCE_DIR}/qml\"
+                \"$<IF:$<CONFIG:Debug>,debug,release>\"
+        RESULT_VARIABLE deploy_result
     )
-    install(SCRIPT ${deploy_script})
-endif()
+    if(NOT deploy_result EQUAL 0)
+        message(FATAL_ERROR \"windeployqt failed with exit code \${deploy_result}\")
+    endif()
+")
