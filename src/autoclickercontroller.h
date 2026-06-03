@@ -83,4 +83,6 @@ private:
     ClickProfile* findProfile(int profileId);
     int intervalForProfile(const ClickProfile* profile) const;
     void scheduleNextClick(ClickProfile* profile);
+    void saveProfiles();
+    void loadProfiles();
 };

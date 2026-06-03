@@ -1,5 +1,6 @@
 #include "autoclickercontroller.h"
 #include <QDebug>
+#include <QSettings>
 
 AutoClickerController::AutoClickerController(QObject* parent)
     : QAbstractListModel(parent)
@@ -14,10 +15,13 @@ AutoClickerController::AutoClickerController(QObject* parent)
             this, &AutoClickerController::onHotkeyPressed);
     connect(m_keyBinder, &KeyBinder::hotkeyReleased,
             this, &AutoClickerController::onHotkeyReleased);
+
+    loadProfiles();
 }
 
 AutoClickerController::~AutoClickerController()
 {
+    saveProfiles();
     qDeleteAll(m_profiles);
     qDeleteAll(m_timers);
 }
@@ -368,4 +372,72 @@ void AutoClickerController::scheduleNextClick(ClickProfile* profile)
 
     QTimer* timer = m_timers[profile->id()];
     timer->start(intervalForProfile(profile));
+}
+
+void AutoClickerController::saveProfiles()
+{
+    QSettings settings;
+    settings.beginWriteArray("Profiles");
+    for (int i = 0; i < m_profiles.size(); ++i) {
+        settings.setArrayIndex(i);
+        ClickProfile* p = m_profiles[i];
+        settings.setValue("targetButton", p->targetButton());
+        settings.setValue("targetButtonCode", p->targetButtonCode());
+        settings.setValue("keybind", p->keybind());
+        settings.setValue("keybindCode", p->keybindCode());
+        settings.setValue("frequency", p->frequency());
+        settings.setValue("randomFrequencyEnabled", p->randomFrequencyEnabled());
+        settings.setValue("maxFrequency", p->maxFrequency());
+        settings.setValue("mode", p->mode());
+    }
+    settings.endArray();
+    settings.setValue("nextProfileId", m_nextProfileId);
+}
+
+void AutoClickerController::loadProfiles()
+{
+    QSettings settings;
+    int size = settings.beginReadArray("Profiles");
+    
+    if (size > 0) {
+        beginInsertRows(QModelIndex(), 0, size - 1);
+        for (int i = 0; i < size; ++i) {
+            settings.setArrayIndex(i);
+            ClickProfile* p = new ClickProfile(m_nextProfileId++, this);
+            p->setTargetButton(settings.value("targetButton", "").toString());
+            p->setTargetButtonCode(settings.value("targetButtonCode", 0).toInt());
+            p->setKeybind(settings.value("keybind", "").toString());
+            p->setKeybindCode(settings.value("keybindCode", 0).toInt());
+            p->setFrequency(settings.value("frequency", 1.0).toDouble());
+            p->setRandomFrequencyEnabled(settings.value("randomFrequencyEnabled", false).toBool());
+            p->setMaxFrequency(settings.value("maxFrequency", 1.0).toDouble());
+            p->setMode(settings.value("mode", ClickProfile::Toggle).toInt());
+            p->setIsActive(false);
+            
+            m_profiles.append(p);
+            
+            if (p->keybindCode() > 0) {
+                m_keyBinder->registerHotkey(p->id(), p->keybindCode());
+            }
+
+            QTimer* timer = new QTimer(this);
+            timer->setSingleShot(true);
+            m_timers[p->id()] = timer;
+            m_holdStates[p->id()] = false;
+
+            connect(timer, &QTimer::timeout, this, [this, p]() {
+                if (p->isActive()) {
+                    m_clicker->performClick(p->targetButtonCode());
+                    scheduleNextClick(p);
+                }
+            });
+        }
+        endInsertRows();
+        emit profileCountChanged();
+    }
+    settings.endArray();
+    
+    if (settings.contains("nextProfileId")) {
+        m_nextProfileId = qMax(m_nextProfileId, settings.value("nextProfileId").toInt());
+    }
 }

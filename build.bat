@@ -1,2 +1,3 @@
-meson setup build/meson-release --native-file meson/native/release.ini
-meson compile -C build/meson-release
+cmake --preset cmake-release
+cmake --build --preset cmake-release
+cmake --build --preset cmake-release-install

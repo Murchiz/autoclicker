@@ -23,6 +23,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include(GNUInstallDirs)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Quick Qml)
+
+qt_policy(SET QTP0001 NEW)
+qt_policy(SET QTP0004 OLD)
+
 find_program(POWERSHELL_EXECUTABLE NAMES pwsh powershell REQUIRED)
 
 get_filename_component(QT6_PREFIX "${Qt6_DIR}/../../.." ABSOLUTE)
@@ -48,9 +52,10 @@ set(HEADERS
 qt_add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 
 # Embed the QML files directly so CMake and Meson produce the same runtime layout.
-qt_add_resources(${PROJECT_NAME} "qml_resources"
-    PREFIX "/"
-    FILES
+qt_add_qml_module(${PROJECT_NAME}
+    URI AutoClicker
+    VERSION 1.0
+    QML_FILES
         qml/main.qml
         qml/ClickProfileItem.qml
 )

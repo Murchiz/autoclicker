@@ -100,8 +100,8 @@ TranslationManager::TranslationManager(QObject* parent)
     const QString storedLanguage = settings.value(QStringLiteral("ui/language"),
                                                   QStringLiteral("ru")).toString();
     m_currentLanguage = storedLanguage == QStringLiteral("en")
-        ? QStringLiteral("ru")
-        : QStringLiteral("en");
+        ? QStringLiteral("en")
+        : QStringLiteral("ru");
 }
 
 QString TranslationManager::currentLanguage() const
