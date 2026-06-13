@@ -23,16 +23,6 @@ $installRoot = Split-Path -Path (Split-Path -Path $InstalledExePath -Parent) -Pa
 $deployArgs = @(
     "--$DeployMode"
     "--force"
-    "--dir"
-    $installRoot
-    "--libdir"
-    "bin"
-    "--plugindir"
-    "plugins"
-    "--qml-deploy-dir"
-    "qml"
-    "--translationdir"
-    "translations"
     "--qmldir"
     $QmlDir
     $InstalledExePath

@@ -18,6 +18,7 @@ project(autoclicker VERSION 1.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(GNUInstallDirs)
@@ -39,6 +40,7 @@ set(SOURCES
     src/keybinder.cpp
     src/models/clickprofile.cpp
     src/translationmanager.cpp
+    resources/qml.qrc
 )
 
 set(HEADERS
@@ -51,14 +53,7 @@ set(HEADERS
 
 qt_add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 
-# Embed the QML files directly so CMake and Meson produce the same runtime layout.
-qt_add_qml_module(${PROJECT_NAME}
-    URI AutoClicker
-    VERSION 1.0
-    QML_FILES
-        qml/main.qml
-        qml/ClickProfileItem.qml
-)
+
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src

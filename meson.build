@@ -3,7 +3,7 @@ project(
   'cpp',
   version: '1.0.0',
   meson_version: '>=1.7.0',
-  default_options: ['cpp_std=c++23'],
+  default_options: ['cpp_std=c++latest'],
 )
 
 if host_machine.system() != 'windows'
