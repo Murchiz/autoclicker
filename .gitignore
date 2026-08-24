@@ -12,6 +12,7 @@ cmake_install.cmake
 Makefile
 *.cmake
 !CMakeLists.txt
+!triplets/*.cmake
 CMakeUserPresets.json
 
 # Ninja

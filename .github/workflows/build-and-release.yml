@@ -41,6 +41,32 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Free Runner Disk Space
+        shell: pwsh
+        run: |
+          Write-Host "Initial disk space:"
+          Get-PSDrive C | Select-Object Used, Free
+          
+          $pathsToRemove = @(
+              "C:\Program Files\Android",
+              "C:\Program Files (x86)\Android",
+              "C:\Program Files\Java",
+              "C:\hostedtoolcache\windows\Java*",
+              "C:\hostedtoolcache\windows\Ruby",
+              "C:\hostedtoolcache\windows\Go",
+              "C:\ProgramData\Chocolatey"
+          )
+          
+          foreach ($p in $pathsToRemove) {
+              if (Test-Path $p) {
+                  Write-Host "Removing $p..."
+                  Remove-Item -Recurse -Force $p -ErrorAction SilentlyContinue
+              }
+          }
+          
+          Write-Host "Disk space after cleanup:"
+          Get-PSDrive C | Select-Object Used, Free
+
       - name: Setup MSVC Developer Command Prompt
         uses: ilammy/msvc-dev-cmd@v1
 
@@ -105,7 +131,9 @@ jobs:
         run: |
           cmake --preset cmake-release `
                 -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
-                -DVCPKG_TARGET_TRIPLET="x64-windows"
+                -DVCPKG_OVERLAY_TRIPLETS="${{ github.workspace }}/triplets" `
+                -DVCPKG_TARGET_TRIPLET="x64-windows-release" `
+                -DVCPKG_INSTALL_OPTIONS="--clean-buildtrees-after-build;--clean-packages-after-build"
 
       - name: Build Application
         shell: pwsh
