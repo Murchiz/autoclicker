@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
     });
 
     // Load QML
-    const QUrl url(QStringLiteral("qrc:/qml/main.qml"));
+    const QUrl url(QStringLiteral("qrc:/AutoClicker/qml/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated, &app, [url, &appendStartupLog](QObject *obj, const QUrl &objUrl) {
         if (!obj && url == objUrl) {
             qWarning().noquote() << "Failed to create root QML object from" << url.toString();

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.25)
 
 # sccache support
 option(USE_SCCACHE "Use sccache to speed up recompilation" ON)
@@ -15,6 +15,12 @@ endif()
 
 project(autoclicker VERSION 1.0.0 LANGUAGES CXX)
 
+if(MSVC AND USE_SCCACHE)
+    set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT Embedded)
+    string(REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
+    string(REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+endif()
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
@@ -26,12 +32,7 @@ include(GNUInstallDirs)
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Quick Qml)
 
 qt_policy(SET QTP0001 NEW)
-qt_policy(SET QTP0004 OLD)
-
-find_program(POWERSHELL_EXECUTABLE NAMES pwsh powershell REQUIRED)
-
-get_filename_component(QT6_PREFIX "${Qt6_DIR}/../../.." ABSOLUTE)
-set(WINDEPLOYQT_EXECUTABLE "${QT6_PREFIX}/bin/windeployqt.exe")
+qt_policy(SET QTP0004 NEW)
 
 set(SOURCES
     src/main.cpp
@@ -40,7 +41,6 @@ set(SOURCES
     src/keybinder.cpp
     src/models/clickprofile.cpp
     src/translationmanager.cpp
-    resources/qml.qrc
 )
 
 set(HEADERS
@@ -53,7 +53,18 @@ set(HEADERS
 
 qt_add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 
-
+qt_add_qml_module(${PROJECT_NAME}
+    URI AutoClicker
+    VERSION 1.0
+    RESOURCE_PREFIX "/"
+    QML_FILES
+        qml/main.qml
+        qml/ClickProfileItem.qml
+    SOURCES
+        src/autoclickercontroller.h src/autoclickercontroller.cpp
+        src/translationmanager.h src/translationmanager.cpp
+        src/models/clickprofile.h src/models/clickprofile.cpp
+)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -77,19 +88,11 @@ install(TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-install(CODE "
-    execute_process(
-        COMMAND \"${POWERSHELL_EXECUTABLE}\"
-                -NoProfile
-                -ExecutionPolicy Bypass
-                -File \"${CMAKE_CURRENT_SOURCE_DIR}/scripts/cmake-install-windeployqt.ps1\"
-                \"${WINDEPLOYQT_EXECUTABLE}\"
-                \"\$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}.exe\"
-                \"${CMAKE_CURRENT_SOURCE_DIR}/qml\"
-                \"$<IF:$<CONFIG:Debug>,debug,release>\"
-        RESULT_VARIABLE deploy_result
-    )
-    if(NOT deploy_result EQUAL 0)
-        message(FATAL_ERROR \"windeployqt failed with exit code \${deploy_result}\")
-    endif()
-")
+qt_generate_deploy_qml_app_script(
+    TARGET ${PROJECT_NAME}
+    OUTPUT_SCRIPT deploy_script
+    NO_UNSUPPORTED_PLATFORM_ERROR
+)
+
+install(SCRIPT ${deploy_script})
+

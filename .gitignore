@@ -65,6 +65,7 @@ ipch/
 *.pro.user
 *.pro.user.*
 .qmake.stash
+.cache
 
 # OS generated
 .DS_Store
