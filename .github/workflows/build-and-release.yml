@@ -52,6 +52,11 @@ jobs:
         run: |
           echo "SCCACHE_GHA_ENABLED=true" >> $env:GITHUB_ENV
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Install Qt 6
         uses: jurplel/install-qt-action@v4
         with:
