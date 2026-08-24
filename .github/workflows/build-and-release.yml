@@ -37,7 +37,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -45,7 +45,7 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
 
       - name: Setup sccache
-        uses: Mozilla-Actions/sccache-action@v0.0.9
+        uses: Mozilla-Actions/sccache-action@v0.0.11
 
       - name: Setup sccache environment
         shell: pwsh
@@ -124,7 +124,7 @@ jobs:
           echo "ZIP_PATH=$zipName" >> $env:GITHUB_ENV
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: AutoClicker-windows-x64
           path: ${{ env.ZIP_PATH }}
@@ -186,7 +186,7 @@ jobs:
 
       - name: Create GitHub Release
         if: env.SHOULD_RELEASE == 'true'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ env.RELEASE_TAG }}
           name: AutoClicker ${{ env.RELEASE_TAG }}
