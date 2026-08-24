@@ -54,7 +54,7 @@ jobs:
 
       - name: Cache Qt Installation
         id: cache-qt
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: C:\Qt\6.11.2\msvc2022_64
           key: qt-6.11.2-msvc2022_64
@@ -63,7 +63,7 @@ jobs:
         if: steps.cache-qt.outputs.cache-hit != 'true'
         shell: pwsh
         run: |
-          Invoke-WebRequest -Uri "https://download.qt.io/official_releases/online_installers/qt-unified-windows-x64-online.exe" -OutFile "qt-installer.exe"
+          curl.exe -L --retry 5 --retry-delay 2 -sS -o qt-installer.exe "https://download.qt.io/official_releases/online_installers/qt-online-installer-windows-x64-online.exe"
 
       - name: Install Qt via Official Installer
         if: steps.cache-qt.outputs.cache-hit != 'true'
