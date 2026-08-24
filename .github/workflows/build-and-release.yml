@@ -1,0 +1,197 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      release:
+        description: 'Create a GitHub Release'
+        type: boolean
+        required: false
+        default: false
+      tag_name:
+        description: 'Release Tag (e.g. v1.0.0). Leave empty to use version from CMakeLists.txt'
+        type: string
+        required: false
+        default: ''
+      prerelease:
+        description: 'Mark as pre-release'
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build, Test & Package
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup MSVC Developer Command Prompt
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Setup sccache
+        uses: Mozilla-Actions/sccache-action@v0.0.9
+
+      - name: Setup sccache environment
+        shell: pwsh
+        run: |
+          echo "SCCACHE_GHA_ENABLED=true" >> $env:GITHUB_ENV
+
+      - name: Install Qt 6
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.2'
+          host: 'windows'
+          target: 'desktop'
+          arch: 'win64_msvc2022_64'
+          modules: 'qtdeclarative qtshadertools qtsvg'
+          cache: true
+
+      - name: Determine Release Information
+        id: release_info
+        shell: pwsh
+        run: |
+          $shouldRelease = "false"
+          $tagName = ""
+
+          if ($env:GITHUB_REF_TYPE -eq "tag" -and $env:GITHUB_REF_NAME -match "^v") {
+              $shouldRelease = "true"
+              $tagName = $env:GITHUB_REF_NAME
+          } elseif ("${{ github.event_name }}" -eq "workflow_dispatch" -and "${{ inputs.release }}" -eq "true") {
+              $shouldRelease = "true"
+              if ("${{ inputs.tag_name }}" -ne "") {
+                  $tagName = "${{ inputs.tag_name }}"
+              } else {
+                  # Extract version from CMakeLists.txt
+                  $cmakeContent = Get-Content -Path "CMakeLists.txt" -Raw
+                  if ($cmakeContent -match 'project\s*\(\s*\w+\s+VERSION\s+([0-9\.]+)') {
+                      $tagName = "v" + $matches[1]
+                  } else {
+                      $tagName = "v1.0.0"
+                  }
+              }
+          }
+
+          Write-Host "Should Release: $shouldRelease"
+          Write-Host "Release Tag: $tagName"
+
+          echo "SHOULD_RELEASE=$shouldRelease" >> $env:GITHUB_ENV
+          echo "RELEASE_TAG=$tagName" >> $env:GITHUB_ENV
+          echo "should_release=$shouldRelease" >> $env:GITHUB_OUTPUT
+          echo "release_tag=$tagName" >> $env:GITHUB_OUTPUT
+
+      - name: Configure CMake
+        shell: pwsh
+        run: |
+          cmake --preset cmake-release -DCMAKE_PREFIX_PATH="$env:Qt6_DIR"
+
+      - name: Build Application
+        shell: pwsh
+        run: |
+          cmake --build --preset cmake-release
+
+      - name: Install and Deploy Self-Contained Bundle
+        shell: pwsh
+        run: |
+          cmake --build --preset cmake-release-install
+
+      - name: Package Release Archive
+        shell: pwsh
+        run: |
+          $installDir = "build/install/cmake-release"
+          $zipName = "AutoClicker-windows-x64.zip"
+          
+          if ($env:RELEASE_TAG -ne "") {
+              $zipName = "AutoClicker-$($env:RELEASE_TAG)-windows-x64.zip"
+          }
+
+          Compress-Archive -Path "$installDir\*" -DestinationPath $zipName -Force
+          echo "ZIP_PATH=$zipName" >> $env:GITHUB_ENV
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AutoClicker-windows-x64
+          path: ${{ env.ZIP_PATH }}
+          retention-days: 14
+
+      - name: Generate Changelog from Commits
+        if: env.SHOULD_RELEASE == 'true'
+        id: changelog
+        shell: pwsh
+        run: |
+          $tag = $env:RELEASE_TAG
+          
+          # Find the previous tag if one exists
+          $previousTag = $(git describe --tags --abbrev=0 "$tag^" 2>$null)
+          if (-not $previousTag) {
+              $previousTag = $(git describe --tags --abbrev=0 2>$null)
+          }
+
+          $logRange = "HEAD"
+          if ($previousTag -and $previousTag -ne $tag) {
+              $logRange = "$previousTag..HEAD"
+              Write-Host "Generating changelog between $previousTag and $tag"
+          } else {
+              Write-Host "Generating changelog for recent commits"
+              $logRange = "-n 30 HEAD"
+          }
+
+          $commits = git log $logRange --pretty=format:"* %s ([%h](https://github.com/${{ github.repository }}/commit/%H))" --no-merges
+          
+          $changelogContent = @()
+          $changelogContent += "## What's Changed in $tag"
+          $changelogContent += ""
+          if ($commits) {
+              $changelogContent += $commits
+          } else {
+              $changelogContent += "* Maintenance and improvements"
+          }
+
+          $changelogPath = "CHANGELOG_RELEASE.md"
+          $changelogContent | Out-File -FilePath $changelogPath -Encoding utf8
+          echo "CHANGELOG_PATH=$changelogPath" >> $env:GITHUB_ENV
+
+      - name: Create and Push Git Tag
+        if: env.SHOULD_RELEASE == 'true' && github.ref_type != 'tag'
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          $tag = $env:RELEASE_TAG
+          $tagExists = git tag -l $tag
+          if (-not $tagExists) {
+              Write-Host "Creating git tag $tag"
+              git tag -a $tag -m "Release $tag"
+              git push origin $tag
+          } else {
+              Write-Host "Tag $tag already exists"
+          }
+
+      - name: Create GitHub Release
+        if: env.SHOULD_RELEASE == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: AutoClicker ${{ env.RELEASE_TAG }}
+          body_path: ${{ env.CHANGELOG_PATH }}
+          files: ${{ env.ZIP_PATH }}
+          draft: false
+          prerelease: ${{ inputs.prerelease || false }}
+          generate_release_notes: true

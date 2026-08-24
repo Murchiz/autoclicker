@@ -14,10 +14,10 @@ A modern autoclicker application built with C++ and Qt/QML featuring a clean, da
 
 ## Requirements
 
-- **Meson** 1.7 or higher
-- **Ninja** (backend for Meson)
+- **CMake** 3.25 or higher
+- **Ninja**
 - **Qt 6** (Core, Gui, Quick, Qml modules)
-- **C++23** compatible compiler
+- **C++23** compatible compiler (MSVC 2022 recommended)
 - **Windows** (uses Win32 API for input simulation and global hotkeys)
 
 > **Note:** Some games and applications with anti-cheat or input protection systems (e.g., Genshin Impact) may require running the autoclicker as administrator for the simulated input to register.
@@ -36,25 +36,14 @@ A modern autoclicker application built with C++ and Qt/QML featuring a clean, da
 
 ## Building
 
-### Using Meson
-
-```powershell
-meson setup build/meson-release --native-file meson/native/release.ini
-meson compile -C build/meson-release
-```
-
-```powershell
-meson setup build/meson-debug --native-file meson/native/debug.ini
-meson compile -C build/meson-debug
-```
-
-Deploy directory destination: `build/meson-release/deploy/`
-
-### Using CMake
-
 ```bash
+# Configure release preset
 cmake --preset cmake-release
+
+# Build
 cmake --build --preset cmake-release
+
+# Deploy self-contained folder to build/install/cmake-release/
 cmake --build --preset cmake-release-install
 ```
 
