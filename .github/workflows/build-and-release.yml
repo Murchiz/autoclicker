@@ -52,36 +52,20 @@ jobs:
         run: |
           echo "SCCACHE_GHA_ENABLED=true" >> $env:GITHUB_ENV
 
-      - name: Cache Qt Installation
-        id: cache-qt
-        uses: actions/cache@v6
+      - name: Cache vcpkg artifacts
+        uses: actions/cache@v4
         with:
-          path: C:\Qt\6.11.2\msvc2022_64
-          key: qt-6.11.2-msvc2022_64
+          path: |
+            ${{ env.VCPKG_INSTALLATION_ROOT }}/installed
+            C:/Users/runneradmin/AppData/Local/vcpkg/archives
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-
 
-      - name: Download Official Qt Installer
-        if: steps.cache-qt.outputs.cache-hit != 'true'
+      - name: Setup vcpkg Environment
         shell: pwsh
         run: |
-          curl.exe -L --retry 5 --retry-delay 2 -sS -o qt-installer.exe "https://download.qt.io/official_releases/online_installers/qt-online-installer-windows-x64-online.exe"
-
-      - name: Install Qt via Official Installer
-        if: steps.cache-qt.outputs.cache-hit != 'true'
-        shell: pwsh
-        run: |
-          .\qt-installer.exe --email "${{ secrets.QT_ACCOUNT_EMAIL }}" `
-                             --pw "${{ secrets.QT_ACCOUNT_PASSWORD }}" `
-                             --accept-licenses `
-                             --default-answer `
-                             --confirm-command install `
-                             qt.qt6.6112.win64_msvc2022_64
-
-      - name: Set Qt Environment Paths
-        shell: pwsh
-        run: |
-          $qtRoot = "C:\Qt\6.11.2\msvc2022_64"
-          echo "Qt6_DIR=$qtRoot\lib\cmake\Qt6" >> $env:GITHUB_ENV
-          echo "$qtRoot\bin" >> $env:GITHUB_PATH
+          echo "VCPKG_BINARY_SOURCES=clear;x-gha,readwrite" >> $env:GITHUB_ENV
 
       - name: Determine Release Information
         id: release_info
@@ -116,10 +100,12 @@ jobs:
           echo "should_release=$shouldRelease" >> $env:GITHUB_OUTPUT
           echo "release_tag=$tagName" >> $env:GITHUB_OUTPUT
 
-      - name: Configure CMake
+      - name: Configure CMake with vcpkg
         shell: pwsh
         run: |
-          cmake --preset cmake-release -DCMAKE_PREFIX_PATH="$env:Qt6_DIR"
+          cmake --preset cmake-release `
+                -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
+                -DVCPKG_TARGET_TRIPLET="x64-windows"
 
       - name: Build Application
         shell: pwsh
